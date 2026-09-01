@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Auth</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; color: #333; }
+    #status { font-size: 14px; margin-bottom: 8px; }
+    #detail { font-size: 12px; color: #666; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <div id="status">Loading MSAL...</div>
+  <div id="detail"></div>
+<script src="https://alcdn.msauth.net/browser/3.28.0/js/msal-browser.min.js"></script>
+<script>
+const s = t => { document.getElementById('status').textContent = t; };
+const d = t => { document.getElementById('detail').textContent = t; };
+
+(async () => {
+  s('MSAL loaded. Checking context...');
+  d('window.opener: ' + (window.opener ? 'EXISTS' : 'NULL') +
+    ' | hash: ' + (window.location.hash ? window.location.hash.substring(0, 40) : 'none') +
+    ' | search: ' + (window.location.search ? window.location.search.substring(0, 40) : 'none'));
+
+  try {
+    const app = new msal.PublicClientApplication({
+      auth: {
+        clientId: 'ca1e6209-9cd9-4fa4-9fa9-69dd5dd689cb',
+        authority: 'https://login.microsoftonline.com/f60a70ff-1e68-471c-b9cf-4e4cc9769b94',
+        redirectUri: 'https://coblea-alliedfireprotectionzerodaygroup.github.io/msal-redirect/msal-redirect.html',
+      },
+      cache: { cacheLocation: 'sessionStorage' },
+    });
+    s('Initializing...');
+    await app.initialize();
+    s('Calling handleRedirectPromise...');
+    const result = await app.handleRedirectPromise();
+    if (result) {
+      s('Got token! Account: ' + result.account?.username + '. Closing popup...');
+      window.close();
+    } else {
+      s('handleRedirectPromise returned null — no auth code found in URL.');
+    }
+  } catch (e) {
+    s('ERROR: ' + e.message);
+    d(e.stack || '');
+    console.error(e);
+  }
+})();
+</script>
+</body>
+</html>
